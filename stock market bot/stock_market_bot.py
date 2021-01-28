@@ -16,6 +16,9 @@ class bots:
     def momentum_strat(self):
         pass
 
+    def stupid(self):
+        pass
+
     def kelly_strat(self):
         pass
 
