@@ -10,6 +10,7 @@ import os
 import csv
 import warnings
 from bs4 import BeautifulSoup
+from numpy import log as ln
 
 matplotlib.rcParams['figure.figsize'] = (10.0, 4.0)
 matplotlib.style.use('ggplot')
@@ -19,6 +20,32 @@ def percentage_change(Open, Close):
     percent = ((Close - Open)/Open)*100
     return percent
 
+def change(Open, Close):
+    return Close/Open
+
+def make_pdf(dist, params, size=100):
+    """Generate distributions's Probability Distribution Function """
+
+    # Separate parts of parameters
+    arg = params[:-2]
+    loc = params[-2]
+    scale = params[-1]
+
+    # Get sane start and end points of distribution
+    start = dist.ppf(0.01, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.0001, loc=loc, scale=scale)
+    end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.9999, loc=loc, scale=scale)
+
+    # Build PDF and turn into pandas Series
+    x = np.linspace(start, end, size)
+    y = dist.pdf(x, loc=loc, scale=scale, *arg)
+    pdf = pd.Series(y, x)
+
+    return pdf
+
+def t(x, u, d, N):
+    for i in range (len(x)):
+        x[i] = (ln(x[i])-N*ln(d))/(ln(u)-ln(d))
+    return x
 #checking the if the file is empty
 if os.stat('stock_symbols.txt').st_size==0:
 #Downloading symbols of all stocks from the website
@@ -74,12 +101,22 @@ with open('stock_symbols.txt') as f:
     
 
 
-aapl_hist_data = yf.download(tickers="GME", period="MAX", interval = "1d")
+aapl_hist_data = yf.download(tickers="AAPL", period ="MAX", interval = "1d")
 aapl_hist_data.drop(['High','Low','Adj Close','Volume'], axis=1)
 
 percentage_col = [percentage_change(x, y) for x, y in zip(aapl_hist_data['Open'], aapl_hist_data['Close'])]
 aapl_hist_data['delta p'] = percentage_col
 
+change_col = [change(x, y) for x, y in zip(aapl_hist_data['Open'], aapl_hist_data['Close'])]
+sorted_col = np.sort(change_col, kind = 'mergesort')
+
+N = 390
+d = sorted_col[0]**(1/N)
+u = sorted_col[-1]**(1/N)
+
+print(d)
+print(u)
+"""
 y, x = np.histogram(percentage_col, bins=150, density=True)
 x = (x + np.roll(x, -1))[:-1] / 2.0
 params = st.norm.fit(percentage_col)
@@ -94,33 +131,19 @@ sse = np.sum(np.power(y - pdf, 2.0))
 print(sse)
 print(params)
 
-def make_pdf(dist, params, size=100):
-    """Generate distributions's Probability Distribution Function """
-
-    # Separate parts of parameters
-    arg = params[:-2]
-    loc = params[-2]
-    scale = params[-1]
-
-    # Get sane start and end points of distribution
-    start = dist.ppf(0.01, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.0001, loc=loc, scale=scale)
-    end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.9999, loc=loc, scale=scale)
-
-    # Build PDF and turn into pandas Series
-    x = np.linspace(start, end, size)
-    y = dist.pdf(x, loc=loc, scale=scale, *arg)
-    pdf = pd.Series(y, x)
-
-    return pdf
-
 #visualization
 pdf = make_pdf(st.norm, params)
 ax = pdf.plot(lw=2, label='PDF', legend=True)
 plt.hist(aapl_hist_data['delta p'], color = 'blue', density = True, edgecolor = 'black', bins=100)
 
 plt.xlim(-20, 20)
-
+"""
+plt.hist(change_col, color = 'blue', density = True, stacked = True, edgecolor = 'black', bins=100)
 plt.show()
+
+t(change_col, u, d, N)
+print(np.mean(change_col))
+
 
 """
 np.savetxt('historical_data.txt', aapl_hist_data.values)
