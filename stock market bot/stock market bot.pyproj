@@ -28,6 +28,12 @@
     <Compile Include="stock_market_bot.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="IA_data_1mo_5m.csv">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="IA_data_1w_1m.csv">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="stock_data.csv" />
     <Content Include="stock_symbols.txt" />
   </ItemGroup>
