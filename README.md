@@ -6,3 +6,4 @@ Requirements:
   - Numpy, scipy, pandas (dataframes)
   - bs4, requests, yfinance (data scraping)
 
+IA specific scripts are data_processing.py and stock_market_bot.py (mostly in the first one)
