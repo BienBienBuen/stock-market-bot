@@ -15,7 +15,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     # Get histogram of original data
     y, x = np.histogram(data, bins=bins, density=True)
     x = (x + np.roll(x, -1))[:-1] / 2.0
-
+    #test
     # Distributions to check
     DISTRIBUTIONS = [        
         st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,
